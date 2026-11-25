@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "ajkube",
-  "compatibility_date": "2026-11-24",
+  "compatibility_date": "2025-07-18",
   "assets": {
     "directory": "./",
     "not_found_handling": "single-page-application"
