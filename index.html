@@ -1,211 +1,99 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>AJKube – Timer, Parcours CFOP &amp; Résolveur</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧊%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e9edf2">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Cubix – Timer, cours et résolveur de Rubik’s Cube</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧊%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <div class="app">
-  <header>
-    <div class="logo"><i id="lg"></i>AJKube</div>
-    <nav aria-label="Navigation principale">
-      <button type="button" class="on" data-v="vTimer">Timer</button>
-      <button type="button" data-v="vLearn">Cours</button>
-      <button type="button" data-v="vSolver">Résolveur</button>
-    </nav>
-  </header>
+<header>
+  <div class="logo"><i id="lg"></i>Cubix</div>
+  <nav><button class="on" data-t="timer"><span class="ic">⏱</span><span>Timer</span></button><button data-t="cours"><span class="ic">🗺️</span><span>Cours</span></button><button data-t="solveur"><span class="ic">🧠</span><span>Résolveur</span></button></nav>
+</header>
 
-  <!-- ==================== 1. ONGLET TIMER ==================== -->
-  <section class="view on" id="vTimer">
-    <!-- Sélecteur de mode Timer -->
-    <div class="mode-switch" role="tablist">
-      <button type="button" class="mbtn on" data-mode="n1">
-        Mode N1 · Débutant
-        <small>Sans interruption · Objectif &amp; Bip rouge</small>
-      </button>
-      <button type="button" class="mbtn" data-mode="cfop">
-        Mode CFOP
-        <small>Tout le cube ou étape ciblée</small>
-      </button>
-    </div>
+<!-- 1 · TIMER -->
+<section class="view on" id="vTimer">
+  <div class="seg" id="tmMode"><button data-m="n1">N1 · Débutant</button><button data-m="cfop">CFOP</button></div>
+  <div class="chips2" id="tmScope"></div>
+  <div class="card clock" id="clock" tabindex="0" role="button" aria-label="Chronomètre : touche pour démarrer ou arrêter">
+    <div class="tm-tag" id="tmTag"></div>
+    <div class="big" id="big">0:00.00</div>
+    <div class="sub" id="sub"></div>
+  </div>
+  <div class="tabs4" id="tmPhases"></div>
+  <div class="tm-ctl"><button class="btn" id="tmStop" style="display:none">⏹ Arrêter</button></div>
+  <div class="card" id="tmAsk" hidden><b>Tu as fini ce cube ?</b><div class="ask-b"><button class="btn" data-a="yes">✓ Oui, terminé</button><button class="btn alt" data-a="no">✗ Non (DNF)</button></div></div>
+  <div class="card" id="tmSet" style="margin-top:14px"></div>
+  <div class="grid2">
+    <div class="card"><h3>Statistiques</h3><div class="kv" id="tmStats"></div></div>
+    <div class="card"><div class="row-h"><h3>Historique</h3><button class="btn alt" id="tmClr" style="padding:4px 12px;min-height:34px;font-size:13px">Effacer</button></div><ul class="hist t2" id="tmHist"></ul></div>
+  </div>
+</section>
 
-    <!-- Sous-options CFOP (visible uniquement en mode CFOP) -->
-    <div class="cfop-sub" id="cfopSub" hidden>
-      <button type="button" class="chip on" data-scope="all">Tout le cube (4 étapes)</button>
-      <button type="button" class="chip" data-scope="0">Cross seule</button>
-      <button type="button" class="chip" data-scope="1">F2L seul</button>
-      <button type="button" class="chip" data-scope="2">OLL seul</button>
-      <button type="button" class="chip" data-scope="3">PLL seul</button>
-    </div>
+<!-- 2 · COURS : parcours, leçon, favoris -->
+<section class="view" id="vLearn">
+  <div class="fav-head"><h2>🗺️ Parcours</h2></div>
+  <div class="card" id="mapSum"></div>
+  <div id="map"></div>
+</section>
+<section class="view" id="vLesson">
+  <div class="lv-head"><button class="btn alt" id="lsBack" aria-label="Retour au parcours">‹ Parcours</button><div><h2 id="lsTitle"></h2><small class="stat" id="lsSub"></small></div></div>
+  <div class="tip-box" id="lsTip"></div>
+  <p class="hint" style="margin:0 0 10px">Sur chaque case : <b>✎</b> = J’apprends, <b>✓</b> = C’est bon. Touche le cube pour voir l’aperçu.</p>
+  <div class="tiles" id="lsTiles"></div>
+  <div id="lsNav"></div>
+</section>
+<section class="view" id="vFavs">
+  <div class="lv-head"><button class="btn alt" id="favBack" aria-label="Retour au parcours">‹ Parcours</button><div><h2>⭐ Mes favoris</h2><small class="stat" id="favCount"></small></div></div>
+  <div class="tiles" id="favGrid"></div>
+</section>
 
-    <!-- Barre d'objectif rapide -->
-    <div class="card goal-bar">
-      <div class="goal-left">
-        <strong id="goalLabel">Objectif N1 :</strong>
-        <div class="gi">
-          <input type="number" id="goalMin" min="0" max="99" inputmode="numeric" aria-label="Minutes"><span>m</span>
-          <input type="number" id="goalSec" min="0" max="59" inputmode="numeric" aria-label="Secondes"><span>s</span>
-        </div>
-        <label class="tg" title="Activer le bip sonore quand l'objectif est dépassé">
-          <input type="checkbox" id="beepOn" checked> Bip alerte
-        </label>
-      </div>
-      <div class="btns">
-        <button type="button" class="btn alt sm" id="bPresetCross">Cross : 6s</button>
-        <button type="button" class="btn alt sm" id="bPreset1m">Total : 1m</button>
-        <button type="button" class="btn alt sm" id="bPresetZero">0</button>
-      </div>
-    </div>
-
-    <!-- Gros bloc Chrono (sans mélange) -->
-    <div class="card clock" id="clock" tabindex="0" role="button" aria-label="Chronomètre">
-      <div class="clock-badge" id="clockBadge">N1 · CONTINU</div>
-      <div class="big" id="big">0:00.00</div>
-      <div class="sub" id="sub">Appuie ou maintiens puis relâche (Espace / toucher) pour démarrer</div>
-    </div>
-
-    <!-- Boutons d'action pendant et juste après la résolution -->
-    <div class="clock-actions">
-      <button type="button" class="btn danger" id="bStop" hidden>Arrêter</button>
-      <button type="button" class="btn dnf-btn" id="bDnfRun" hidden>Abandonner (DNF)</button>
-    </div>
-
-    <!-- Bandeau de confirmation Fin de résolution (Terminé vs DNF) -->
-    <div class="card verdict-bar" id="verdictBar" hidden>
-      <div>
-        <span class="verdict-time" id="verdictTime">0:00.00</span>
-        <span class="verdict-txt">Résolution terminée ou abandonnée ?</span>
-      </div>
-      <div class="btns">
-        <button type="button" class="btn ok-btn" id="bVerdictOk">✓ Terminé (OK)</button>
-        <button type="button" class="btn dnf-btn" id="bVerdictDnf">✕ Abandonné (DNF)</button>
-      </div>
-    </div>
-
-    <!-- Étapes CFOP (affiché en mode CFOP tout cube) -->
-    <div class="tabs" id="tabs" hidden></div>
-
-    <!-- Statistiques & Historique -->
-    <div class="grid2">
-      <div class="card">
-        <h3 id="stT">Statistiques</h3>
-        <div class="kv" id="kv"></div>
-        <div class="chart" id="chart"></div>
-      </div>
-      <div class="card">
-        <div class="hist-head">
-          <h3>Historique</h3>
-          <button type="button" class="btn alt sm" id="bClr">Effacer</button>
-        </div>
-        <ul class="hist" id="hist"></ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==================== 2. ONGLET COURS (PARCOURS LINÉAIRE & FAVORIS) ==================== -->
-  <section class="view" id="vLearn">
-    <div class="learn-top">
-      <div class="prog-card card">
-        <div class="prog-info">
-          <strong>Parcours d’apprentissage</strong>
-          <span id="progTxt">0 / 0 étapes validées</span>
-        </div>
-        <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
-      </div>
-      <button type="button" class="fav-filter" id="bFavFilter">★ Favoris (<span id="favCount">0</span>)</button>
-    </div>
-
-    <!-- Lecteur 3D intégré aux cours -->
-    <div class="card learn-stage-card" id="learnPlayer" hidden>
-      <div class="demo-top">
-        <div>
-          <strong id="lpTitle">Algorithme</strong>
-          <span class="alg-badge" id="lpTag"></span>
-        </div>
-        <button type="button" class="btn alt sm" id="lpClose">Fermer ✕</button>
-      </div>
-      <div class="learn-player-grid">
-        <div class="mini-stage" id="learnStage"><div class="cube" id="learnCube"></div></div>
-        <div class="lp-side">
-          <p class="alg-desc" id="lpDesc"></p>
-          <div class="demo-moves" id="lpMoves"></div>
-          <div class="demo-ctrl">
-            <button type="button" class="btn" id="lpPlay">▶ Animer</button>
-            <button type="button" class="btn alt" id="lpStep">Pas +1</button>
-            <button type="button" class="btn alt" id="lpReset">Cas initial</button>
-            <select id="lpSpd" aria-label="Vitesse">
-              <option value="520">Lent</option>
-              <option value="300" selected>Normal</option>
-              <option value="150">Rapide</option>
-            </select>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Carte linéaire (Roadmap) -->
-    <div class="roadmap" id="roadmap"></div>
-  </section>
-
-  <!-- ==================== 3. ONGLET RÉSOLVEUR DE CUBE ==================== -->
-  <section class="view" id="vSolver">
-    <div class="solver-grid">
-      <div class="card">
-        <div class="solver-tabs">
-          <button type="button" class="chip on" data-smode="scramble">Par mélange (Algorithme)</button>
-          <button type="button" class="chip" data-smode="paint">Dessiner l'état du cube</button>
-        </div>
-
-        <!-- Mode A : Saisie de mélange -->
-        <div id="sScrambleBox" class="s-box">
-          <label class="lbl" for="sInput">Entre un mélange (ex: R U R' U' F2 D L')</label>
-          <div class="s-input-row">
-            <input type="text" id="sInput" placeholder="Ex: R U2 F' L D2 B R' U" autocomplete="off">
-            <button type="button" class="btn alt" id="bSRand">Aléatoire</button>
-          </div>
-          <div class="btns" style="margin-top:10px">
-            <button type="button" class="btn" id="bSApply">Appliquer &amp; Calculer la solution</button>
-            <button type="button" class="btn alt" id="bSReset">Cube résolu</button>
-          </div>
-        </div>
-
-        <!-- Mode B : Peindre l'état du cube -->
-        <div id="sPaintBox" class="s-box" hidden>
-          <p class="hint" style="margin:0 0 10px">1. Choisis une couleur ci-dessous · 2. Clique sur les facettes du cube 3D (glisse pour tourner le cube).</p>
-          <div class="palette" id="palette"></div>
-          <div class="btns" style="margin-top:12px">
-            <button type="button" class="btn" id="bPSolve">Résoudre ce cube dessiné</button>
-            <button type="button" class="btn alt" id="bPReset">Réinitialiser les couleurs</button>
-          </div>
-        </div>
-
-        <!-- Résultat de la résolution -->
-        <div class="sol-box" id="solBox">
-          <div class="sol-head">
-            <strong>Solution proposée</strong>
-            <span id="solCount">0 mouvement</span>
-          </div>
-          <div class="sol-seq" id="solSeq">Applique un mélange ou dessine ton cube pour obtenir la résolution.</div>
-          <div class="btns" style="margin-top:10px">
-            <button type="button" class="btn" id="bSolPlay" disabled>▶ Lancer la résolution animée</button>
-            <button type="button" class="btn alt" id="bSolStep" disabled>Étape suivante (+1)</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Cube 3D interactif du résolveur -->
-      <div class="card">
-        <div class="stage" id="solverStage"><div class="cube" id="solverCube"></div></div>
-        <div class="pad" id="solverPad"></div>
-        <p class="hint">Glisse pour orienter le cube en 3D. Utilise les boutons ci-dessus pour manipuler manuellement.</p>
-      </div>
-    </div>
-  </section>
+<!-- 3 · RÉSOLVEUR -->
+<section class="view" id="vSolver">
+  <div class="card"><div class="stage stage-v" id="stage3"></div><p class="hint" style="text-align:center;margin:0">Glisse pour tourner le cube</p></div>
+  <div class="card" style="margin-top:14px"><h3>1 · Donne un mélange</h3>
+    <textarea id="svScr" rows="2" placeholder="Ex. : R U R' U' F2 D L' B" autocapitalize="characters" autocomplete="off" spellcheck="false"></textarea>
+    <div class="btns"><button class="btn" id="svApply">Appliquer le mélange</button><button class="btn alt" id="svRand">Au hasard</button></div></div>
+  <div class="card" style="margin-top:14px"><h3>2 · Ou dessine l’état de ton cube</h3>
+    <div class="pal" id="svPal"></div><div class="net" id="svNet"></div>
+    <div class="btns"><button class="btn alt" id="svReset">Cube résolu</button></div>
+    <p class="hint">Choisis une couleur puis touche les cases. Les centres sont fixes : jaune dessus, vert devant, orange à droite.</p></div>
+  <div class="card" style="margin-top:14px"><button class="btn big" id="svSolve">🧠 Résoudre</button><div id="svOut"></div></div>
+</section>
 </div>
 
-<script src="app.js"></script>
+<div id="sheetBg"></div>
+<button id="sheetX" aria-label="Fermer l’aperçu">✕</button>
+<div class="card demo-card" id="demoCard" role="dialog" aria-label="Animation du cas">
+  <div class="grip"></div>
+  <div class="demo-bar" id="demoBar">
+    <div class="demo-top">
+      <div><strong id="demoName">Algorithme</strong> <small id="demoSub" style="opacity:.75"></small> <span class="ok" id="dOk">✓ résolu</span></div>
+      <div class="btns" style="flex-wrap:nowrap"><button class="btn dn" id="dPrev" aria-label="Cas précédent">‹</button><button class="btn dn" id="dNext" aria-label="Cas suivant">›</button><button class="btn dn" id="dClose" aria-label="Fermer">✕</button></div>
+    </div>
+    <div class="demo-moves" id="demoMoves"></div>
+  </div>
+  <div class="stage stage-s" id="stage2"></div>
+  <div class="dinfo"><div class="alg-desc" id="dDesc"></div><div class="alg-seq" id="dSeq"></div></div>
+  <div class="dc"><button id="dSetup">↺ Départ</button><button id="dStep">Pas +1</button><button id="dPlay" class="pri">▶ Animer</button></div>
+  <div class="dspd">Vitesse <select id="demoSpd"><option value="520">Lent</option><option value="320" selected>Normal</option><option value="150">Rapide</option></select></div>
+  <div class="dset"><button id="dLearn" class="s-learn">📖 J’apprends</button><button id="dOkB" class="s-ok">✓ C’est bon</button><button id="dFavB" class="f" aria-label="Favori">☆</button></div>
+  <button class="dclose" id="dClose2">Fermer</button>
+</div>
+
+
+<script src="js/vendor/min2phase.js" defer></script>
+<script src="js/cube3d.js" defer></script>
+<script src="js/data.js" defer></script>
+<script src="js/courses.js" defer></script>
+<script src="js/timer.js" defer></script>
+<script src="js/solver.js" defer></script>
+<script src="js/app.js" defer></script>
 </body>
 </html>
